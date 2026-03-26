@@ -4,13 +4,11 @@ import Agence from './pages/Agence'
 import Projects from './pages/Projects'
 import Navbar from './components/Navigation/Navbar'
 import FullScreenNav from './components/Navigation/FullScreenNav'
-import CustomCursor from './components/common/CustomCursor'
 
 
 const App = () => {
   return (
     <div className='overflow-x-hidden'>
-      <CustomCursor />
       <Navbar />
       <FullScreenNav />
       <Routes>
