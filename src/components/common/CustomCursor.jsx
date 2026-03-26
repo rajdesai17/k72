@@ -1,15 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { motion, useSpring, useMotionValue } from 'framer-motion'
 
 const CustomCursor = () => {
-  const [position, setPosition] = useState({ x: 0, y: 0 })
   const [isClicked, setIsClicked] = useState(false)
   const rotationRef = useRef(0)
   const animationRef = useRef(null)
   const lastTimeRef = useRef(performance.now())
 
+  const cursorX = useMotionValue(0)
+  const cursorY = useMotionValue(0)
+
+  const springConfig = { damping: 25, stiffness: 400 }
+  const smoothX = useSpring(cursorX, springConfig)
+  const smoothY = useSpring(cursorY, springConfig)
+
+  const [rotation, setRotation] = useState(0)
+
   useEffect(() => {
     const handleMouseMove = (e) => {
-      setPosition({ x: e.clientX, y: e.clientY })
+      cursorX.set(e.clientX)
+      cursorY.set(e.clientY)
     }
 
     const handleMouseDown = () => {
@@ -31,7 +41,7 @@ const CustomCursor = () => {
       window.removeEventListener('mousedown', handleMouseDown)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [])
+  }, [cursorX, cursorY])
 
   useEffect(() => {
     const animate = (currentTime) => {
@@ -43,11 +53,7 @@ const CustomCursor = () => {
       const speed = isClicked ? clickSpeed : baseSpeed
 
       rotationRef.current += speed * deltaTime
-
-      const cursor = document.getElementById('custom-cursor-triangle')
-      if (cursor) {
-        cursor.style.transform = `rotate(${rotationRef.current}deg)`
-      }
+      setRotation(rotationRef.current)
 
       animationRef.current = requestAnimationFrame(animate)
     }
@@ -68,29 +74,56 @@ const CustomCursor = () => {
           cursor: none !important;
         }
       `}</style>
-      <div
+      <motion.div
         className='fixed pointer-events-none z-[9999]'
         style={{
-          left: position.x,
-          top: position.y,
-          transform: 'translate(-2px, -2px)',
+          x: smoothX,
+          y: smoothY,
+          translateX: '-4px',
+          translateY: '-4px',
         }}
       >
-        <svg
-          id='custom-cursor-triangle'
-          width='16'
-          height='16'
-          viewBox='0 0 16 16'
+        <motion.svg
+          width='28'
+          height='28'
+          viewBox='0 0 28 28'
           style={{
-            transformOrigin: '3px 3px',
+            transformOrigin: '5px 5px',
+            rotate: rotation,
           }}
         >
+          {/* Orange border (outermost) */}
           <polygon
-            points='0,0 12,6 0,12'
-            fill='black'
+            points='0,0 22,11 0,22'
+            fill='none'
+            stroke='#FF6B00'
+            strokeWidth='2'
+            transform='translate(3, 3)'
           />
-        </svg>
-      </div>
+          {/* Green border */}
+          <polygon
+            points='0,0 18,9 0,18'
+            fill='none'
+            stroke='#00C853'
+            strokeWidth='2'
+            transform='translate(3, 3)'
+          />
+          {/* White border */}
+          <polygon
+            points='0,0 14,7 0,14'
+            fill='none'
+            stroke='white'
+            strokeWidth='2'
+            transform='translate(3, 3)'
+          />
+          {/* Black fill (innermost) */}
+          <polygon
+            points='0,0 10,5 0,10'
+            fill='black'
+            transform='translate(3, 3)'
+          />
+        </motion.svg>
+      </motion.div>
     </>
   )
 }
